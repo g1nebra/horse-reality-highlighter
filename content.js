@@ -6,7 +6,8 @@ const TARGET_COATS = [
   "3f4bmehwjnhx5egc55pjer7lckwx7bg6iwhsnng5i4b7yjx234ycuhfkb3nzpg6fk4eah3bpn6gqy.png",
   "46l2wiq7e5be3n246dexcfxhow37c3psgnq4dtj4tkxkpw5qvbugabw2wl34ja2olvof5qtvxyfoe.png",
   "2riz763rtzenddwk75gkambidzn5k5b5zrhkdwlbqtjulxsm4prifte4rm5a7asx2tqr4k3auvc64.png",
-  "zusimh4e4jg2nmwwdh3xxaxbwryr6avw7fsofnaemrtjeq2mbjhqqetqv6oq3gqk2dgjund4ltmtc.png"
+  "zusimh4e4jg2nmwwdh3xxaxbwryr6avw7fsofnaemrtjeq2mbjhqqetqv6oq3gqk2dgjund4ltmtc.png",
+  "6hs4rs2oo5evhbojsperqud63q2wudwycl2jzs57h3icnd3hapn6yfg5mdtxq3uaygzevlwaopcse.png"
 
 ];
 
