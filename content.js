@@ -2,7 +2,10 @@
 const TARGET_COATS = [
     // W8 icelandic
   "mxsi6xn7n5cjjmqo7einfzvzkoaiae332l6i7agcutzadgusqdmjgg5vwvat7bmfr4jdg22jrn6wq.png",
-  
+  "rtnjzvjfojfzreregldc24eks3d65dwaoyoah3vj5tdkbxufn47ocwaqsaq2u4vfglqbgrhkgm7dg.png",
+  "3f4bmehwjnhx5egc55pjer7lckwx7bg6iwhsnng5i4b7yjx234ycuhfkb3nzpg6fk4eah3bpn6gqy.png",
+  "46l2wiq7e5be3n246dexcfxhow37c3psgnq4dtj4tkxkpw5qvbugabw2wl34ja2olvof5qtvxyfoe.png"
+
   // GENERIC COAT FOR DEBUG
   // "c6qajgteybe3xcib3fotvjmjnt77dlnl63avcir34ya4fjnz6hopamksa2fecufl74x5ufzyfrira.png",
   // "77q6gyxcbnf6njmfhjwfv5mox5y3clguvp2iensztpngntxz7qax242gqdefdidteievzmjgwrofy.png",
