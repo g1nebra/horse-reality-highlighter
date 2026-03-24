@@ -8,7 +8,7 @@ This Chrome extension helps you find specific horses on **Horse Reality** by hig
 -   A configuration menu allows you to set your target Breed and a list of Coat IDs.
 -   Select a specific breed or search across "All Breeds".
 -   Input multiple image IDs (filenames) to look for specific coats.
-![alt text](image.png)
+![alt text](image-1.png)
 
 ## Fairness and Safe Play
 
@@ -29,7 +29,7 @@ This Chrome extension helps you find specific horses on **Horse Reality** by hig
 ## How to Use
 
 1.  Go to the Horse Reality Foundation page.
-2.  Look for the **"Config Highlighter"** button fixed in the **bottom-left corner** of your screen.
+2.  Look for the **"Config Highlighter"** button fixed in the **top-right corner** of your screen.
 3.  Click it to open the settings window.
 4.  **Target Breed**: Select the breed you are looking for from the dropdown, or leave it as "All Breeds".
 5.  **Coat IDs**: Paste the image filenames of the coats you want to find.
@@ -57,6 +57,3 @@ This extension is built on the **Chromium** engine and works on:
 -   **Chromium**
 
 *Note: Firefox is not currently supported without modifications.*
-
-
-

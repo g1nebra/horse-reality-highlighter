@@ -61,7 +61,7 @@ function createConfigWindow() {
 
 const cfgBtn = document.createElement('button');
 cfgBtn.innerText = "Config Highlighter";
-cfgBtn.style.cssText = "position: fixed; bottom: 10px; left: 10px; z-index: 9999;";
+cfgBtn.style.cssText = "position: fixed; top: 10px; right: 10px; z-index: 9999;";
 cfgBtn.onclick = createConfigWindow;
 document.body.appendChild(cfgBtn);
 
