@@ -1,20 +1,69 @@
-// specific URLs for the new foal bases
-const TARGET_COATS = [
-    // W8 icelandic
-  "mxsi6xn7n5cjjmqo7einfzvzkoaiae332l6i7agcutzadgusqdmjgg5vwvat7bmfr4jdg22jrn6wq.png",
-  "rtnjzvjfojfzreregldc24eks3d65dwaoyoah3vj5tdkbxufn47ocwaqsaq2u4vfglqbgrhkgm7dg.png",
-  "3f4bmehwjnhx5egc55pjer7lckwx7bg6iwhsnng5i4b7yjx234ycuhfkb3nzpg6fk4eah3bpn6gqy.png",
-  "46l2wiq7e5be3n246dexcfxhow37c3psgnq4dtj4tkxkpw5qvbugabw2wl34ja2olvof5qtvxyfoe.png",
-  "2riz763rtzenddwk75gkambidzn5k5b5zrhkdwlbqtjulxsm4prifte4rm5a7asx2tqr4k3auvc64.png",
-  "zusimh4e4jg2nmwwdh3xxaxbwryr6avw7fsofnaemrtjeq2mbjhqqetqv6oq3gqk2dgjund4ltmtc.png",
-  "6hs4rs2oo5evhbojsperqud63q2wudwycl2jzs57h3icnd3hapn6yfg5mdtxq3uaygzevlwaopcse.png",
-  "duerkfnknjhktnom5hzufjy74ql3cuhy3otorfpwj7wqphs2jndpadstp4vc5557zvwvpedf6zsls.png",
-  "z2zkq5x5tzgqjb32tumyci35gvh5dkrwavct6jhw6pwco5tpzgtlml5tzbtv3t2gyuuxzus4hcml2.png",
-  "htg5uhzfindkrawbtbtqcw46eu6nspvwsds5cfdh7eqaiqxrfdffyxcwpf5wk4a3cdk3w7jzb7yoc.png"
+// Configuration State
+let settings = { breed: "", coats: [] };
 
-];
+// settings are loaded from localStorage
+try {
+  const stored = localStorage.getItem("HR_HIGHLIGHTER_SETTINGS");
+  if (stored) settings = JSON.parse(stored);
+} catch (e) {
+  console.error("Error loading settings:", e);
+}
 
-const TARGET_BREED = "Icelandic Horse";
+// UI for configuration
+function createConfigWindow() {
+  if (document.getElementById('hr-config-ui')) return;
+
+  const ui = document.createElement('div');
+  ui.id = 'hr-config-ui';
+  ui.style.cssText = "position: fixed; top: 100px; right: 20px; background: white; border: 1px solid #ccc; padding: 15px; z-index: 10000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: sans-serif; width: 300px;";
+  
+  const breeds = [
+    "Akhal-Teke", "Arabian", "Brabant", "Brumby", "Camargue", "Cleveland Bay",
+    "Exmoor Pony", "Finnhorse", "Fjord", "Friesian", "Haflinger", "Icelandic",
+    "Irish Cob", "Kathiawari", "Kladruber", "Knabstrupper", "Lipizzaner", "Lusitano",
+    "Mongolian", "Mustang", "Namib Desert", "Noriker", "Norman Cob", "Oldenburg",
+    "Pantaneiro", "Pura Raza Española", "Quarter", "Shetland Pony", "Shire", "Suffolk Punch",
+    "Thoroughbred", "Trakehner", "Welsh Pony", "Appaloosa"
+  ];
+  const breedOptions = breeds.map(b => `<option value="${b}" ${settings.breed === b ? 'selected' : ''}>${b}</option>`).join('');
+
+  ui.innerHTML = `
+    <h4 style="margin-top:0;">Highlighter Settings</h4>
+    <label style="display:block; font-size: 12px; margin-bottom: 5px;">Target Breed:</label>
+    <select id="hr-breed-in" style="width: 100%; margin-bottom: 10px;">
+      <option value="" ${settings.breed === "" ? "selected" : ""}>All Breeds</option>
+      ${breedOptions}
+    </select>
+    
+    <label style="display:block; font-size: 12px; margin-bottom: 5px;">Coat IDs (one per line):</label>
+    <textarea id="hr-coats-in" rows="6" style="width: 100%; margin-bottom: 10px;">${settings.coats.join('\n')}</textarea>
+    
+    <div style="text-align: right;">
+      <button id="hr-save-btn" style="cursor: pointer;">Save</button>
+      <button id="hr-close-btn" style="cursor: pointer; margin-left: 5px;">Close</button>
+    </div>
+  `;
+
+  document.body.appendChild(ui);
+
+  document.getElementById('hr-save-btn').onclick = () => {
+    const breedVal = document.getElementById('hr-breed-in').value.trim();
+    const coatsVal = document.getElementById('hr-coats-in').value.split('\n').map(s => s.trim()).filter(s => s);
+    settings = { breed: breedVal, coats: coatsVal };
+    localStorage.setItem("HR_HIGHLIGHTER_SETTINGS", JSON.stringify(settings));
+    ui.remove();
+    highlightHorses();
+  };
+
+  document.getElementById('hr-close-btn').onclick = () => ui.remove();
+}
+
+
+const cfgBtn = document.createElement('button');
+cfgBtn.innerText = "Config Highlighter";
+cfgBtn.style.cssText = "position: fixed; bottom: 10px; left: 10px; z-index: 9999;";
+cfgBtn.onclick = createConfigWindow;
+document.body.appendChild(cfgBtn);
 
 function highlightHorses() {
   const blocks = document.querySelectorAll('.adopt_blocks');
@@ -25,17 +74,31 @@ function highlightHorses() {
     const imgElement = block.querySelector('.miniature img');
     const imgSrc = imgElement ? imgElement.src : "";
 
-    const breedMatches = breedText.includes(TARGET_BREED);
-    const coatMatches = TARGET_COATS.some(coatId => imgSrc.includes(coatId));
+    const breedMatches = settings.breed ? breedText.includes(settings.breed) : true;
+    const coatMatches = settings.coats.some(coatId => imgSrc.includes(coatId));
 
     if (breedMatches && coatMatches) {
-      block.style.backgroundColor = " #ff0000";
+
+      block.style.boxShadow = "inset 0 0 0 4px #ffca28";
+      block.style.backgroundColor = "rgba(255, 202, 40, 0.2)"; // Subtle gold background
 
       const buyButton = block.querySelector('.buy_fhorse');
 
       if (buyButton) {
-        buyButton.style.height = "55px";
+        buyButton.style.backgroundColor = "#ffca28";
+        buyButton.style.borderColor = "#c79a00";
+        buyButton.style.color = "#fff";
         buyButton.style.fontWeight = "bold";
+      }
+    } else {
+      block.style.boxShadow = "";
+      block.style.backgroundColor = "";
+      const buyButton = block.querySelector('.buy_fhorse');
+      if (buyButton) {
+        buyButton.style.backgroundColor = "";
+        buyButton.style.borderColor = "";
+        buyButton.style.color = "";
+        buyButton.style.fontWeight = "";
       }
     }
   });
@@ -43,6 +106,6 @@ function highlightHorses() {
 
 highlightHorses();
 
-// Optional: Horse Reality uses dynamic loading/tabs, 
+// Optional: Reality uses dynamic loading/tabs, 
 // so run it every few seconds just in case
 setInterval(highlightHorses, 2000);
