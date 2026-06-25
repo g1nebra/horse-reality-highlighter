@@ -1,0 +1,367 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
+
+/* ----------------------------------------------------------------- buttons */
+
+/* Fixed "Config Highlighter" button (top-right).
+   Its visible text is kept verbatim so the sibling extension can anchor
+   its own toolbar just below it. */
+#hrh-config-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 99999;
+  width: 140px;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: nowrap;
+  background: #0b2c41;
+  border: 2px solid #1c5072;
+  border-radius: 4px;
+  color: #fff;
+  cursor: grab;
+  touch-action: none;
+  font: 700 11px/1.2 'Roboto', system-ui, sans-serif;
+  padding: 5px 8px;
+  transition: background-color .12s, border-color .12s;
+}
+#hrh-config-btn:hover { background: #1c5072; border-color: #407f9c; }
+
+/* "Save coat to Highlighter" floating button on horse profiles (draggable) */
+#hrh-save-btn {
+  position: fixed;
+  top: 92px;
+  left: 10px;
+  z-index: 99999;
+  width: 222px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  gap: 7px;
+  background: #c8861a;
+  border: 2px solid #a06a12;
+  border-radius: 4px;
+  color: #fff;
+  cursor: grab;
+  touch-action: none;
+  font: 700 12px/1.2 'Roboto', system-ui, sans-serif;
+  padding: 8px 14px;
+  transition: background-color .12s, border-color .12s;
+}
+#hrh-save-btn:hover { background: #dd9a2a; border-color: #c8861a; }
+#hrh-save-btn .hrh-save-ico { font-size: 14px; line-height: 1; }
+
+/* Shared dragging state for both floating buttons */
+.hrh-dragging { cursor: grabbing !important; opacity: .85; user-select: none; }
+#hrh-save-btn[data-state="busy"]   { background: #407f9c; border-color: #1c5072; }
+#hrh-save-btn[data-state="saved"]  { background: #2e8b57; border-color: #236b43; }
+#hrh-save-btn[data-state="exists"] { background: #407f9c; border-color: #1c5072; }
+#hrh-save-btn[data-state="error"]  { background: #b83232; border-color: #8f2626; }
+
+/* ------------------------------------------------------------ config panel */
+
+#hrh-panel {
+  position: fixed;
+  top: 48px;
+  right: 10px;
+  z-index: 100000;
+  width: 322px;
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  background: #e7f0f3;
+  color: #081b28;
+  border: 1px solid #98c0cd;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(8,27,40,.4);
+  overflow: hidden;
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 13px;
+}
+
+#hrh-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #081b28;
+  border-bottom: 2px solid #1c5072;
+  flex-shrink: 0;
+}
+#hrh-panel-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #fff;
+}
+#hrh-panel-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 3px;
+  font-size: 18px;
+  line-height: 1;
+  color: #98c0cd;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+#hrh-panel-close:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+#hrh-panel-body {
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hrh-field { display: flex; flex-direction: column; gap: 5px; }
+.hrh-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #407f9c;
+}
+
+.hrh-select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #98c0cd;
+  border-radius: 4px;
+  color: #081b28;
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.hrh-select:focus { outline: 2px solid #407f9c; outline-offset: -1px; }
+
+/* Segmented sex filter */
+.hrh-seg {
+  display: flex;
+  border: 1px solid #98c0cd;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+.hrh-seg button {
+  flex: 1;
+  padding: 6px 4px;
+  border: none;
+  border-left: 1px solid #d2e4e9;
+  background: #fff;
+  color: #1c5072;
+  font: 600 12px 'Roboto', sans-serif;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.hrh-seg button:first-child { border-left: none; }
+.hrh-seg button:hover { background: #d2e4e9; }
+.hrh-seg button.active { background: #1c5072; color: #fff; }
+.hrh-seg button.active[data-sex="mare"]     { background: #6a3d9b; }
+.hrh-seg button.active[data-sex="stallion"] { background: #1c5072; }
+
+/* Saved coats list */
+.hrh-coats-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.hrh-coats-count { font-size: 10px; color: #407f9c; }
+.hrh-clear {
+  border: none;
+  background: none;
+  color: #7aaabd;
+  font: 600 10px 'Roboto', sans-serif;
+  cursor: pointer;
+  padding: 0;
+}
+.hrh-clear:hover { color: #b83232; text-decoration: underline; }
+
+.hrh-coats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 264px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.hrh-empty {
+  font-size: 11px;
+  font-style: italic;
+  color: #5d95ad;
+  text-align: center;
+  padding: 16px 8px;
+  background: #fff;
+  border: 1px dashed #98c0cd;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+.hrh-coat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #bad5de;
+  border-radius: 4px;
+  padding: 6px;
+  transition: border-color .12s;
+}
+.hrh-coat:hover { border-color: #5d95ad; }
+.hrh-coat.disabled { opacity: .5; }
+.hrh-coat-toggle {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1c5072;
+}
+.hrh-coat-thumb {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  object-fit: contain;
+  background: #d2e4e9;
+  border: 1px solid #bad5de;
+  border-radius: 3px;
+}
+.hrh-coat-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.hrh-coat-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #081b28;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hrh-coat-id {
+  font-size: 9px;
+  color: #7aaabd;
+  font-family: 'Roboto Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hrh-coat-links { display: flex; gap: 8px; margin-top: 2px; }
+.hrh-coat-links a { font-size: 10px; color: #407f9c; text-decoration: none; }
+.hrh-coat-links a:hover { color: #1c5072; text-decoration: underline; }
+.hrh-coat-del {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: #7aaabd;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .12s, color .12s;
+}
+.hrh-coat-del:hover { background: #fde8e8; color: #b83232; }
+
+/* Manual add row */
+.hrh-add { display: flex; gap: 6px; }
+.hrh-add input {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #98c0cd;
+  border-radius: 4px;
+  color: #081b28;
+  font: inherit;
+  font-size: 11px;
+  padding: 6px 8px;
+}
+.hrh-add input:focus { outline: 2px solid #407f9c; outline-offset: -1px; }
+.hrh-add button {
+  background: #1c5072;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font: 600 11px 'Roboto', sans-serif;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.hrh-add button:hover { background: #0b2c41; }
+
+/* ------------------------------------------------------------------- toast */
+
+#hrh-toast-wrap {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.hrh-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0b2c41;
+  color: #fff;
+  border-left: 4px solid #c8861a;
+  border-radius: 4px;
+  padding: 10px 12px;
+  max-width: 300px;
+  box-shadow: 0 4px 16px rgba(8,27,40,.4);
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-size: 12px;
+  animation: hrh-toast-in .18s ease-out;
+}
+.hrh-toast.ok   { border-left-color: #2e8b57; }
+.hrh-toast.info { border-left-color: #407f9c; }
+.hrh-toast.err  { border-left-color: #b83232; }
+.hrh-toast img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.hrh-toast .hrh-toast-text { min-width: 0; }
+.hrh-toast .hrh-toast-title { font-weight: 700; }
+.hrh-toast .hrh-toast-sub {
+  font-size: 10px;
+  color: #bad5de;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+@keyframes hrh-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ------------------------------------------------ foundation card highlight */
+
+.adopt_blocks.hrh-highlight {
+  box-shadow: inset 0 0 0 3px #c8861a;
+  background-color: rgba(200,134,26,.12);
+  border-radius: 4px;
+}
+.adopt_blocks.hrh-highlight .buy_fhorse {
+  background-color: #c8861a !important;
+  border-color: #a06a12 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}

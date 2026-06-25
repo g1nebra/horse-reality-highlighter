@@ -1,13 +1,17 @@
 # Horse Reality Highlighter by claymore
 
-This Chrome extension helps you find specific horses on **Horse Reality** by highlighting them based on their Breed and Coat Image ID.
+This Chrome extension helps you find specific horses on **Horse Reality** by highlighting them on the Foundation page based on their **Breed**, **Coat** and **Sex**.
 
 ## Features
 
--   Horses matching your criteria are highlighted with a **gold border** and a **gold background**. The "Buy" button also turns gold.
--   A configuration menu allows you to set your target Breed and a list of Coat IDs.
--   Select a specific breed or search across "All Breeds".
--   Input multiple image IDs (filenames) to look for specific coats.
+-   **Save coats from a horse's profile.** A **"Save coat to Highlighter"** button under the horse photo captures that horse's **foal coat** (the image the Foundation uses), so you can hunt for matching foals.
+    -   Works for adult horses (reads the "as a foal" image from the **Colour** tab, opens it automatically if needed), foals shown with their dam (picks the smaller foal layer), and foals shown alone.
+-   **Managed coat list.** Every saved coat appears in the settings panel with a **thumbnail**, a **link to the photo** and a **link back to the source horse**. Each coat has an **enable/disable** toggle so you can switch highlights on and off without losing them.
+-   **Sex filter.** Highlight only **mares**, only **stallions**, or **both**.
+-   **Breed filter.** Select a specific breed or search across "All Breeds".
+-   Matching horses are highlighted with a **gold border** and background; the "Buy" button turns gold too.
+-   The styling matches the companion **HR color predictor** extension (Horse Reality's official colour palette).
+
 ![alt text](image-1.png)
 
 ## Fairness and Safe Play
@@ -28,15 +32,22 @@ This Chrome extension helps you find specific horses on **Horse Reality** by hig
 
 ## How to Use
 
+### Save coats from a horse profile
+
+1.  Open any horse's profile page (`/horses/...`).
+2.  Under the horse photo, click **"Save coat to Highlighter"**.
+3.  A confirmation appears with a thumbnail of the captured **foal coat**. It's now in your list (enabled by default).
+    *   *Note*: For adult horses the foal image lives in the **Colour** tab. The button opens that tab automatically if it isn't loaded yet, if you ever see "Coat not found", open the Colour tab once and click again.
+
+### Highlight on the Foundation
+
 1.  Go to the Horse Reality Foundation page.
-2.  Look for the **"Config Highlighter"** button fixed in the **top-right corner** of your screen.
-3.  Click it to open the settings window.
-4.  **Target Breed**: Select the breed you are looking for from the dropdown, or leave it as "All Breeds".
-5.  **Coat IDs**: Paste the image filenames of the coats you want to find.
-    *   *Note*: These are usually the long filenames of the horse images (e.g., for this picture `https://horse-img.horsereality.com/large/uevdn355dvfxvhjewc7elojtmkqmhrpjk5jeojtzrgux6vf243twryhm5ssstpj4hsj3sh52z6goy.png` it would be `uevdn355dvfxvhjewc7elojtmkqmhrpjk5jeojtzrgux6vf243twryhm5ssstpj4hsj3sh52z6goy.png`).
-    *   Put **one ID per line**.
-6.  Click **Save**.
-7.  The page will instantly update to highlight any matching horses.
+2.  Click the **"Config Highlighter"** button fixed in the **top-right corner** of your screen to open the settings panel.
+3.  **Breed**: select a breed, or leave it as "All Breeds".
+4.  **Sex**: choose **Both**, **Mares**, or **Stallions**.
+5.  **Saved Coats**: every saved coat is listed with a thumbnail and links. Use each row's **checkbox** to enable/disable it, or **×** to remove it.
+    *   You can also paste an image filename or URL into **"Add a coat ID manually"** and click **Add**.
+6.  Highlighting updates instantly, no Save button needed. A horse is highlighted only when it matches the breed **and** sex filters **and** at least one enabled coat.
 
 ## How to Update
 
