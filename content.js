@@ -22,7 +22,7 @@ const BREEDS = [
 //   name     source horse name (display only)
 //   horseUrl link back to the source horse profile
 //   enabled  whether this coat is currently used for highlighting
-let settings = { breed: "", sex: "both", coats: [] };
+let settings = { breed: "", sex: "both", coatFilter: true, dimNonMatching: false, coats: [] };
 
 function filenameOf(url) {
   if (!url) return "";
@@ -43,25 +43,29 @@ function normalizeCoat(c) {
   if (c && typeof c === "object") {
     const id = c.id || filenameOf(c.url || "");
     if (!id) return null;
-    return {
+    const coat = {
       id,
       url: c.url || "",
       name: c.name || "",
       horseUrl: c.horseUrl || "",
       enabled: c.enabled !== false,
     };
+    if (Array.isArray(c.parts) && c.parts.length > 1) coat.parts = c.parts.slice();
+    return coat;
   }
   return null;
 }
 
 function loadSettings() {
-  const s = { breed: "", sex: "both", coats: [] };
+  const s = { breed: "", sex: "both", coatFilter: true, dimNonMatching: false, coats: [] };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (typeof parsed.breed === "string") s.breed = parsed.breed;
       if (["both", "mare", "stallion"].includes(parsed.sex)) s.sex = parsed.sex;
+      if (typeof parsed.coatFilter === "boolean") s.coatFilter = parsed.coatFilter;
+      if (typeof parsed.dimNonMatching === "boolean") s.dimNonMatching = parsed.dimNonMatching;
       if (Array.isArray(parsed.coats)) {
         const seen = new Set();
         for (const entry of parsed.coats) {
@@ -103,17 +107,35 @@ function blockSex(block) {
   return "unknown";
 }
 
+// A card may carry one combined image (new system) or several stacked part
+// images (old system), so match against every image in the card.
+function cardImageSrcs(block) {
+  return [...block.querySelectorAll(".miniature img, .adopt_blockimg img")]
+    .map(i => i.getAttribute("src") || "")
+    .filter(Boolean);
+}
+
 function highlightHorses() {
   const ids = enabledCoatIds();
-  document.querySelectorAll(".adopt_blocks").forEach(block => {
+  const results = [...document.querySelectorAll(".adopt_blocks")].map(block => {
     const breedText = block.querySelector(".adopt_blocktitle p")?.textContent || "";
-    const imgSrc = block.querySelector(".miniature img")?.getAttribute("src") || "";
+    const srcs = cardImageSrcs(block);
 
     const breedOk = settings.breed ? breedText.includes(settings.breed) : true;
     const sexOk = settings.sex === "both" ? true : blockSex(block) === settings.sex;
-    const coatOk = ids.length > 0 && ids.some(id => imgSrc.includes(id));
+    const coatOk = !settings.coatFilter ||
+      (ids.length > 0 && ids.some(id => srcs.some(src => src.includes(id))));
 
-    block.classList.toggle("hrh-highlight", breedOk && sexOk && coatOk);
+    return { block, match: breedOk && sexOk && coatOk };
+  });
+
+  // Only dim when something actually matches, so a page with no matches at all
+  // isn't greyed out entirely.
+  const dimming = settings.dimNonMatching && results.some(r => r.match);
+
+  results.forEach(({ block, match }) => {
+    block.classList.toggle("hrh-highlight", match);
+    block.classList.toggle("hrh-dim", dimming && !match);
   });
 }
 
@@ -164,28 +186,64 @@ function queryDeepAll(selector) {
   return deepQueryAll(selector);
 }
 
+// Coat images come in two systems:
+//   new: one combined image on horse-img.horsereality.com
+//   old: separate body/mane/tail layers under /upload/colours/
+function isHorsePartUrl(url) {
+  return url.includes(HORSE_IMG_HOST) || url.includes("/upload/colours/");
+}
+
 // The "as a foal" image from the Colour tab. Adults have it; foals do not.
 function readColourFoalUrl() {
   const img = queryDeep(".horse_foal_photo img.foal, .horse_foal_image img.foal");
   const src = img?.getAttribute("src") || img?.src || "";
-  return src.includes(HORSE_IMG_HOST) ? src : "";
+  return isHorsePartUrl(src) ? src : "";
 }
 
-// Horse layers stacked inside the #profile-image custom element. Each layer
-// carries a `url` (image) and `height` attribute.
+// Coat layers inside #profile-image, each with its url and on-screen position.
 function profileLayers() {
   return queryDeepAll("hr-horse-image-layer")
-    .map(l => ({ url: l.getAttribute("url") || "", height: parseFloat(l.getAttribute("height")) }))
-    .filter(l => l.url.includes(HORSE_IMG_HOST));
+    .map(l => ({
+      url: l.getAttribute("url") || "",
+      height: parseFloat(l.getAttribute("height")),
+      left: parseFloat(l.getAttribute("left")),
+      up: parseFloat(l.getAttribute("up")),
+    }))
+    .filter(l => isHorsePartUrl(l.url));
 }
 
-// When a foal shares the page with its dam there are two horse layers; the foal
-// renders smaller, so the smallest height is the foal. A foal alone has one.
-function readProfileFoalUrl() {
+function sameSpot(a, b) {
+  return Math.abs((a.height || 0) - (b.height || 0)) < 0.01
+      && Math.abs((a.left   || 0) - (b.left   || 0)) < 0.01
+      && Math.abs((a.up     || 0) - (b.up     || 0)) < 0.01;
+}
+
+// Distinct horses on the page (one per position). Old-system horses stack
+// several part layers at one spot, so layer count != horse count.
+function horseCount(layers) {
+  const spots = [];
+  for (const l of layers) if (!spots.some(s => sameSpot(s, l))) spots.push(l);
+  return spots.length;
+}
+
+// All part URLs belonging to the foal (the smallest-height position). One URL
+// for the new system; body/mane/tail for the old system.
+function foalParts() {
   const layers = profileLayers();
-  if (!layers.length) return "";
-  layers.sort((a, b) => (a.height || 0) - (b.height || 0));
-  return layers[0].url;
+  if (!layers.length) return [];
+  const ref = [...layers].sort((a, b) => (a.height || 0) - (b.height || 0))[0];
+  return layers.filter(l => sameSpot(l, ref)).map(l => l.url);
+}
+
+// Old-system foal assets live under /foals/; otherwise fall back to the age.
+function looksLikeFoal(parts) {
+  if (parts.some(u => u.includes("/foals/"))) return true;
+  return (queryDeep("#age")?.textContent || "").toLowerCase().includes("month");
+}
+
+// The body layer is the coat's identity; mane/tail are extra parts.
+function primaryPart(parts) {
+  return parts.find(u => u.includes("/body/")) || parts[0] || "";
 }
 
 function colourTab() {
@@ -205,25 +263,32 @@ function waitFor(fn, timeout = 2500, interval = 120) {
   });
 }
 
-// Resolves to the foal coat image URL for the horse on the current page.
+// Resolves to the foal's coat as a list of part URLs (one for the new system,
+// body/mane/tail for the old system), or [] if nothing was found.
 async function extractFoalCoat() {
-  // 1. Colour-tab "as a foal" image, if already in the DOM.
-  let url = readColourFoalUrl();
-  if (url) return url;
+  // 1. Colour-tab "as a foal" image (new-system adults), if already in the DOM.
+  const colour = readColourFoalUrl();
+  if (colour) return [colour];
 
-  // 2. Two horse layers means a foal-with-dam page, take the foal layer directly.
-  if (profileLayers().length >= 2) return readProfileFoalUrl();
+  const layers = profileLayers();
 
-  // 3. Adult shown alone: open the Colour tab to load the "as a foal" image.
+  // 2. Foal shown with its dam: take the foal's part group directly.
+  if (horseCount(layers) >= 2) return foalParts();
+
+  // 3. Single horse already showing a foal image: use it.
+  const parts = foalParts();
+  if (parts.length && looksLikeFoal(parts)) return parts;
+
+  // 4. Adult shown alone: open the Colour tab to load the "as a foal" image.
   const tab = colourTab();
   if (tab) {
     tab.click();
-    url = await waitFor(readColourFoalUrl, 2500);
-    if (url) return url;
+    const url = await waitFor(readColourFoalUrl, 2500);
+    if (url) return [url];
   }
 
-  // 4. Fallback: a foal shown alone, its single profile layer.
-  return readProfileFoalUrl();
+  // 5. Last resort: whatever the profile shows.
+  return parts;
 }
 
 function horseName() {
@@ -355,33 +420,36 @@ async function onSaveCoat(e) {
   const btn = e.currentTarget;
   setSaveBtn(btn, "busy", "Reading coat…");
 
-  const url = await extractFoalCoat();
-  if (!url) {
+  const parts = await extractFoalCoat();
+  const primary = primaryPart(parts);
+  if (!primary) {
     setSaveBtn(btn, "error", "Coat not found");
     toast("err", "Could not read the foal coat", "Open the Colour tab, then try again");
     resetSaveBtnLater(btn);
     return;
   }
 
-  const id = filenameOf(url);
+  const id = filenameOf(primary);
   const name = horseName();
+  const extraParts = parts.length > 1 ? parts.slice() : undefined;
   const existing = settings.coats.find(c => c.id === id);
 
   if (existing) {
     existing.enabled = true;
-    if (!existing.url) existing.url = url;
+    if (!existing.url) existing.url = primary;
+    if (!existing.parts && extraParts) existing.parts = extraParts;
     if (!existing.name && name) existing.name = name;
     if (!existing.horseUrl) existing.horseUrl = canonicalHorseUrl();
     persist();
     refreshCoatList();
     setSaveBtn(btn, "exists", "Already saved");
-    toast("info", "Coat already in your list", name || id, thumbOf(url));
+    toast("info", "Coat already in your list", name || id, thumbOf(primary));
   } else {
-    settings.coats.push({ id, url, name, horseUrl: canonicalHorseUrl(), enabled: true });
+    settings.coats.push({ id, url: primary, parts: extraParts, name, horseUrl: canonicalHorseUrl(), enabled: true });
     persist();
     refreshCoatList();
     setSaveBtn(btn, "saved", "Saved ✓");
-    toast("ok", "Coat saved to Highlighter", name || id, thumbOf(url));
+    toast("ok", "Coat saved to Highlighter", name || id, thumbOf(primary));
   }
   resetSaveBtnLater(btn);
 }
@@ -404,6 +472,8 @@ function injectSaveButton() {
 
 function applyBreed(value) { settings.breed = value; persist(); }
 function applySex(value) { settings.sex = value; persist(); }
+function applyCoatFilter(on) { settings.coatFilter = on; persist(); }
+function applyDim(on) { settings.dimNonMatching = on; persist(); }
 
 function removeCoat(id) {
   settings.coats = settings.coats.filter(c => c.id !== id);
@@ -420,7 +490,7 @@ function addCoatManually(rawValue) {
   const id = filenameOf(rawValue.trim());
   if (!id) return false;
   if (settings.coats.some(c => c.id === id)) return false;
-  const url = rawValue.includes(HORSE_IMG_HOST) ? rawValue.trim() : "";
+  const url = isHorsePartUrl(rawValue) ? rawValue.trim() : "";
   settings.coats.push({ id, url, name: "", horseUrl: "", enabled: true });
   persist();
   refreshCoatList();
@@ -552,11 +622,24 @@ function createConfigWindow() {
       </div>
 
       <div class="hrh-field">
+        <label class="hrh-check">
+          <input type="checkbox" id="hrh-dim" />
+          <span>Dim horses that don't match</span>
+        </label>
+        <span class="hrh-hint">Fades out cards that don't meet your filters (when at least one matches).</span>
+      </div>
+
+      <div class="hrh-field">
         <div class="hrh-coats-head">
           <span class="hrh-label">Saved Coats</span>
           <span><span id="hrh-coats-count" class="hrh-coats-count"></span>
           <button id="hrh-clear" class="hrh-clear" type="button">Clear all</button></span>
         </div>
+        <label class="hrh-check">
+          <input type="checkbox" id="hrh-coatfilter" />
+          <span>Filter by coat</span>
+        </label>
+        <span class="hrh-hint">Off = highlight by breed + sex only, ignoring coats.</span>
         <div id="hrh-coats" class="hrh-coats"></div>
       </div>
 
@@ -585,8 +668,23 @@ function createConfigWindow() {
     b.addEventListener("click", () => { applySex(b.dataset.sex); syncSeg(); }));
   syncSeg();
 
+  // Dim non-matching toggle
+  const dimCb = panel.querySelector("#hrh-dim");
+  dimCb.checked = settings.dimNonMatching;
+  dimCb.addEventListener("change", () => applyDim(dimCb.checked));
+
   // Coats list
   refreshCoatList();
+
+  // Coat filter toggle
+  const coatFilterCb = panel.querySelector("#hrh-coatfilter");
+  const coatsBox = panel.querySelector("#hrh-coats");
+  const syncCoatFilter = () => {
+    coatFilterCb.checked = settings.coatFilter;
+    coatsBox.classList.toggle("ignored", !settings.coatFilter);
+  };
+  coatFilterCb.addEventListener("change", () => { applyCoatFilter(coatFilterCb.checked); syncCoatFilter(); });
+  syncCoatFilter();
 
   // Clear all
   panel.querySelector("#hrh-clear").addEventListener("click", () => {

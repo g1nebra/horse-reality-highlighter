@@ -186,6 +186,11 @@
 }
 .hrh-clear:hover { color: #b83232; text-decoration: underline; }
 
+.hrh-check { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+.hrh-check input { width: 15px; height: 15px; accent-color: #1c5072; cursor: pointer; flex-shrink: 0; }
+.hrh-check span { font-size: 12px; font-weight: 600; color: #081b28; }
+.hrh-hint { font-size: 10px; color: #7aaabd; }
+
 .hrh-coats {
   display: flex;
   flex-direction: column;
@@ -194,6 +199,7 @@
   overflow-y: auto;
   padding-right: 2px;
 }
+.hrh-coats.ignored { opacity: .5; }
 .hrh-empty {
   font-size: 11px;
   font-style: italic;
@@ -358,6 +364,12 @@
   box-shadow: inset 0 0 0 3px #c8861a;
   background-color: rgba(200,134,26,.12);
   border-radius: 4px;
+}
+
+.adopt_blocks.hrh-dim {
+  opacity: .3;
+  filter: grayscale(.8);
+  transition: opacity .15s, filter .15s;
 }
 .adopt_blocks.hrh-highlight .buy_fhorse {
   background-color: #c8861a !important;
