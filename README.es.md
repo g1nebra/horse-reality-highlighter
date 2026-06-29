@@ -51,7 +51,7 @@ Esto no significa que la extensión tenga soporte oficial por parte de Horse Rea
 3.  Aparece una confirmación con una miniatura de la **capa de potro** capturada. Ya está en tu lista (activada por defecto).
     *   *Nota*: En los caballos adultos, la imagen de potro está en la pestaña **Colour**. El botón abre esa pestaña automáticamente si aún no está cargada; si alguna vez ves "Coat not found" (capa no encontrada), abre la pestaña Colour una vez y vuelve a pulsar.
 
-### Resaltar en el Foundation
+### Resaltar en la Fundación
 
 1.  Ve a la página Foundation de Horse Reality.
 2.  Pulsa el botón **"Config Highlighter"** fijo en la **esquina superior derecha** de la pantalla para abrir el panel de ajustes.
